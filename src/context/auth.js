@@ -1,7 +1,10 @@
 import { useState, createContext, useEffect } from 'react';
 import { auth, db } from '../services/firebaseConnection';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, validatePassword } from 'firebase/auth';
+import { doc, getDoc, namedQuery, setDoc } from 'firebase/firestore';
+
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export const AuthContext = createContext({});
 
@@ -9,11 +12,36 @@ function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(false);
 
+    const navigate = useNavigate();
+
     //Logar um usuário
-    function signIn(email, password) {
-        console.log(email);
-        console.log(password);
-        alert("usuario logado com sucesso!!")
+    async function signIn(email, password) {
+        setLoadingAuth(true);
+
+        await signInWithEmailAndPassword(auth, email, password)
+            .then(async (value) => {
+                let uid = value.user.uid
+
+                const docRef = doc(db, "users", uid);
+                const docSnap = await getDoc(docRef);
+
+                let data = {
+                    uid: uid,
+                    name: docSnap.data().name,
+                    email: value.user.email,
+                    avatarUrl: docSnap.data().avatarUrl,
+                }
+                setUser(data);
+                storageUser(data);
+                setLoadingAuth(false);
+                toast.success("Bem vindo(a) de volta!");
+                navigate("/dashboard");
+            })
+            .catch((error) => {
+                console.log(error)
+                setLoadingAuth(false);
+                toast.error("Ops algo deu errado!");
+            })
     }
     // Cadastrar um novo usuário
     async function signUp(email, password, name) {
@@ -31,9 +59,14 @@ function AuthProvider({ children }) {
                         let data = {
                             uid: uid,
                             name: name,
-                            email: value.user.email
+                            email: value.user.email,
+                            avatarUrl: null
                         };
+                        setUser(data);
+                        storageUser(data);
                         setLoadingAuth(false);
+                        toast.success("Seja bem vindo ao sistema!")
+                        navigate("/dashboard");
                     })
             })
 
@@ -41,6 +74,10 @@ function AuthProvider({ children }) {
                 console.log(error);
                 setLoadingAuth(false);
             })
+    }
+
+    function storageUser(data) {
+        localStorage.setItem('@ticketsPRO', JSON.stringify(data))
     }
 
     return (

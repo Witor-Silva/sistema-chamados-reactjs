@@ -3,6 +3,8 @@ import logo from "../../assets/logo.png";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/auth";
 
+import { Loader } from "lucide-react";
+
 export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -47,7 +49,7 @@ export default function SignUp() {
           />
 
           <button type="submit">
-            {loadingAuth ? "Carregando..." : "Cadastrar"}
+            {loadingAuth ? <Loader /> : "Cadastrar"}
           </button>
         </form>
 

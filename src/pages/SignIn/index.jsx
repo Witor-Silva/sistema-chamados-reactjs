@@ -3,18 +3,19 @@ import "./signin.css";
 import logo from "../../assets/logo.png";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/auth";
+import { Loader } from "lucide-react";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { signIn } = useContext(AuthContext);
+  const { signIn, loadingAuth } = useContext(AuthContext);
 
-  function handleSignIn(e) {
+  async function handleSignIn(e) {
     e.preventDefault();
 
     if (email !== "" && password !== "") {
-      signIn(email, password);
+      await signIn(email, password);
     }
   }
   return (
@@ -40,7 +41,7 @@ export default function SignIn() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit">Acessar</button>
+          <button type="submit">{loadingAuth ? <Loader /> : "Acessar"}</button>
         </form>
 
         <Link to="/register">Criar uma conta</Link>
