@@ -60,6 +60,9 @@ form button{
     color: #fff;
     font-size: 1.3rem;
 }
+.loading{
+margin-top: 0.4rem;
+}
 
 .login a{
     margin: 1.5rem 0;

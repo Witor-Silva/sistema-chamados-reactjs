@@ -1,5 +1,9 @@
-.dashboard-screen{
-    color:#000;
-    justify-content: center;
-    align-items: center;
+
+
+.dashboardScreen{
+  font: 24px;
+  font-family: sans-serif;
+  background-color: #de5a73;
+  justify-content:center 
+
   };

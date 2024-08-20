@@ -35,13 +35,15 @@ export default function SignIn() {
           />
 
           <input
-            type="text"
+            type="password"
             placeholder="**********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit">{loadingAuth ? <Loader /> : "Acessar"}</button>
+          <button type="submit">
+            {loadingAuth ? <Loader className="loading" /> : "Acessar"}
+          </button>
         </form>
 
         <Link to="/register">Criar uma conta</Link>
