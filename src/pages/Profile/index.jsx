@@ -5,9 +5,12 @@ import { FiSettings, FiUpload } from 'react-icons/fi'
 import avatar from '../../assets/avatar.png';
 import { AuthContext } from '../../context/auth';
 
+import './profile.css';
+
 export default function Profile() {
 
     const { user } = useContext(AuthContext);
+    const [avatarUrl, setAvatarUrl] = useState(user && user.avatarUrl)
     
 
     return (
@@ -28,7 +31,11 @@ export default function Profile() {
                     </label>
 
                     <input type='file' accept='image/*'/> <br />
-                    {}
+                    {avatarUrl === null ? (
+                        <img src={avatar} alt='Foto de perfil' width={250} height={250}/>
+                    ) : (
+                        <img src={avatarUrl} alt='Foto de perfil' width={250} height={250}/>
+                    )}
                 </label>
                 </form>
                 
