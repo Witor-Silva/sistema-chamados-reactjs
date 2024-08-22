@@ -97,6 +97,8 @@ function AuthProvider({ children }) {
         localStorage.setItem('@ticketsPRO', JSON.stringify(data))
     }
 
+    // Fazer logout da aplicação
+
     async function logout() {
         await signOut(auth);
         localStorage.removeItem('@ticketsPRO');
@@ -113,6 +115,8 @@ function AuthProvider({ children }) {
                 logout,
                 loadingAuth,
                 loading,
+                storageUser,
+                setUser
             }}
         >
             {children}
