@@ -4,6 +4,8 @@ import Title from '../../components/Title';
 import { FiSettings, FiUpload } from 'react-icons/fi'
 import avatar from '../../assets/avatar.png';
 import { AuthContext } from '../../context/auth';
+import { db, storage } from '../../services/firebaseConnection';
+import { doc, updateDoc } from 'firebase/firestore';
 
 import './profile.css';
 
@@ -18,16 +20,6 @@ export default function Profile() {
 
     const [nome, setNome] = useState(user && user.name); // , <-- Estado para exibir o cadastro do nome do banco de dados
     const [email, setEmail] = useState(user && user.email); // <-- Estado para exibir o cadastro de email do banco de dados
-    
-    
-
-
-
-
-
-
-
-
 
     function handleFile(e){
         if(e.target.files[0]){
@@ -45,6 +37,21 @@ export default function Profile() {
         }
     }
 
+    function handleSubmit(e){
+        e.preventDefault();
+
+        if(imageAvatar === null && nome !== ''){
+            //Atualizar apenas o nome do usurario
+
+            const docRef = doc(db, "users", user.uid) // <-- "users" é o nome da collection (tabela) do banco de dados
+
+        }
+        
+        if(imageAvatar !== null && nome !== ""){
+            //Atualizar a image e o nome do usuario
+        }
+    }
+
 
     return (
         <div>
@@ -56,7 +63,7 @@ export default function Profile() {
                 </Title>
                 <div className='container'>
 
-                    <form className='form-profile'>
+                    <form className='form-profile' onSubmit={handleSubmit}>
 
                         <label className='label-avatar'>
                             <span>
