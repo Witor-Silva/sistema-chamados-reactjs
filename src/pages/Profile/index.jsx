@@ -6,6 +6,7 @@ import avatar from '../../assets/avatar.png';
 import { AuthContext } from '../../context/auth';
 import { db, storage } from '../../services/firebaseConnection';
 import { doc, updateDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 import './profile.css';
 
@@ -37,14 +38,24 @@ export default function Profile() {
         }
     }
 
-    function handleSubmit(e){
+    async function handleSubmit(e){
         e.preventDefault();
 
         if(imageAvatar === null && nome !== ''){
             //Atualizar apenas o nome do usurario
-
             const docRef = doc(db, "users", user.uid) // <-- "users" é o nome da collection (tabela) do banco de dados
-
+            await updateDoc(docRef, {
+                name: nome,
+            })
+            .then(()=> {
+                let data = {
+                    ...user,
+                    name: nome,
+                }
+                setUser(data);
+                storageUser(data);
+                toast.success("Atualizado com sucesso!")
+            })
         }
         
         if(imageAvatar !== null && nome !== ""){
