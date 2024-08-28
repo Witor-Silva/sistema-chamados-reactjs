@@ -6,6 +6,8 @@ import avatar from '../../assets/avatar.png';
 import { AuthContext } from '../../context/auth';
 import { db, storage } from '../../services/firebaseConnection';
 import { doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 import { toast } from 'react-toastify';
 
 import './profile.css';
@@ -38,6 +40,18 @@ export default function Profile() {
         }
     }
 
+    async function handleUpload(){
+        const currentUid = user.uid;
+
+        const uploadRef = ref(storage, `images/${currentUid}/${imageAvatar.name}`)
+
+        const uploadTask = uploadBytes(uploadRef, imageAvatar)
+        .then(() => {
+            console.log('ENVIADO COM SUCESSO')
+        })
+
+    }
+
     async function handleSubmit(e){
         e.preventDefault();
 
@@ -60,6 +74,8 @@ export default function Profile() {
         
         if(imageAvatar !== null && nome !== ""){
             //Atualizar a image e o nome do usuario
+        handleUpload()
+        
         }
     }
 
