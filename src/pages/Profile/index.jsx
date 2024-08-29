@@ -11,6 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { toast } from 'react-toastify';
 
 import './profile.css';
+import { Download } from 'lucide-react';
 
 
 
@@ -21,20 +22,20 @@ export default function Profile() {
     const [avatarUrl, setAvatarUrl] = useState(user && user.avatarUrl) // <-- Estado para enviar url da imagem para o banco de dados
     const [imageAvatar, setImageAvatar] = useState(null);  // <-- Estado para armazenar o arquivo enviado para o banco de dados
 
-    const [nome, setNome] = useState(user && user.name); // , <-- Estado para exibir o cadastro do nome do banco de dados
+    const [nome, setNome] = useState(user && user.nome); // , <-- Estado para exibir o cadastro do nome do banco de dados
     const [email, setEmail] = useState(user && user.email); // <-- Estado para exibir o cadastro de email do banco de dados
 
     function handleFile(e){
         if(e.target.files[0]){
             const image = e.target.files[0]
     
-            if(image.type === 'image/jpeg' || 'image/jpg' || 'image/png'){
+            if(image.type === 'image/jpeg' || image.type === 'image/jpg' || image.type === 'image/png'){
                 setImageAvatar(image)
                 setAvatarUrl(URL.createObjectURL(image))
     
             }else{
                 alert( "Envie uma image do tipo JPEG, JPG ou PNG !" )
-                setAvatarUrl(null);
+                setImageAvatar(null);
                 return;
             }
         }
@@ -46,8 +47,29 @@ export default function Profile() {
         const uploadRef = ref(storage, `images/${currentUid}/${imageAvatar.name}`)
 
         const uploadTask = uploadBytes(uploadRef, imageAvatar)
-        .then(() => {
-            console.log('ENVIADO COM SUCESSO')
+        .then((snapshot) => {
+
+            getDownloadURL(snapshot.ref).then(async (downloadURL) => {
+                let urlFoto = downloadURL;
+
+                const docRef = doc(db, "users", user.uid)
+                await updateDoc(docRef, {
+                    avatarUrl: urlFoto,
+                    name: nome,
+                })
+                .then(() => {
+                    let data = {
+                        ...user,
+                        name: nome,
+                        avatarUrl: urlFoto,
+                    }
+
+                    setUser(data);
+                    storageUser(data);
+                    toast.success("Atualizado com sucesso!")
+                })
+            })
+
         })
 
     }
@@ -72,7 +94,7 @@ export default function Profile() {
             })
         }
         
-        if(imageAvatar !== null && nome !== ""){
+        if( nome !== "" && imageAvatar !== null ){
             //Atualizar a image e o nome do usuario
         handleUpload()
         
