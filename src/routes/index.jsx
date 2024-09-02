@@ -4,8 +4,10 @@ import SignIn from "../pages/SignIn";
 import SignUp from "../pages/SignUp";
 import Dashboard from "../pages/Dashboard";
 import Profile from "../pages/Profile";
-import Private from "./Private";
 import Customers from "../pages/Customers";
+import New from "../pages/New";
+
+import Private from "./Private";
 
 function RoutesApp() {
   return (
@@ -34,6 +36,14 @@ function RoutesApp() {
         element={
           <Private>
             <Customers />
+          </Private>
+        }
+      />
+      <Route
+        path="/new"
+        element={
+          <Private>
+            <New />
           </Private>
         }
       />
