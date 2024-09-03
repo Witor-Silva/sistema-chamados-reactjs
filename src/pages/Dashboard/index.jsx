@@ -8,6 +8,7 @@ import { FiPlus, FiMessageSquare, FiSearch, FiEdit2 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { collection, getDocs, orderBy, limit, startAfter, query } from 'firebase/firestore';
 import { db } from '../../services/firebaseConnection'
+import { format } from  'date-fns'
 
 import "./dashboard.css";
 
@@ -30,7 +31,9 @@ export default function Dashboard() {
       setLoading(false);
 
     }
-    loadChamados()
+    loadChamados();
+
+    return () => { }
   }, [])
 
   async function updateState(querySnapshot) {
@@ -46,6 +49,7 @@ export default function Dashboard() {
           cliente: doc.data().cliente,
           clientId: doc.data().clientId,
           created: doc.data().created,
+          createdFormat: format(doc.data().created.toDate(), 'dd/MM/yyyy'),
           status: doc.data().status,
           complemento: doc.data().complemento,
         })
@@ -94,30 +98,34 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td data-label="Cliente">Mercado Esquina</td>
-                    <td data-label="Assunto">Suporte</td>
-                    <td data-label="Status">
-                      <span className="badge" style={{ backgroundColor: "#999" }}>
-                        Em aberto
-                      </span>
-                    </td>
-                    <td data-label="Cadastrado">01/09/2024</td>
-                    <td data-label="#">
-                      <button
-                        className="action"
-                        style={{ backgroundColor: "#3583f6" }}
-                      >
-                        <FiSearch color="#fff" size={17} />
-                      </button>
-                      <button
-                        className="action"
-                        style={{ backgroundColor: "#f6a935" }}
-                      >
-                        <FiEdit2 color="#fff" size={17} />
-                      </button>
-                    </td>
-                  </tr>
+                  {chamados.map((item, index) => {
+                    return (
+                      <tr key={index}>
+                        <td data-label="Cliente">{item.cliente}</td>
+                        <td data-label="Assunto">{item.assunto}</td>
+                        <td data-label="Status">
+                          <span className="badge" style={{ backgroundColor: "#999" }}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td data-label="Cadastrado">{item.createdFormat}</td>
+                        <td data-label="#">
+                          <button
+                            className="action"
+                            style={{ backgroundColor: "#3583f6" }}
+                          >
+                            <FiSearch color="#fff" size={17} />
+                          </button>
+                          <button
+                            className="action"
+                            style={{ backgroundColor: "#f6a935" }}
+                          >
+                            <FiEdit2 color="#fff" size={17} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
 
 
                 </tbody>
