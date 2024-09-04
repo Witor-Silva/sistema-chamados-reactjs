@@ -7,7 +7,9 @@ import { AuthContext } from "../../context/auth";
 import { db } from "../../services/firebaseConnection";
 import { collection, getDocs, getDoc, doc, addDoc } from "firebase/firestore";
 
-import { toast } from 'react-toastify';
+import { useParams } from "react-router-dom";
+
+import { toast } from "react-toastify";
 
 import "./new.css";
 
@@ -15,6 +17,7 @@ const listRef = collection(db, "customers");
 
 export default function New() {
   const { user } = useContext(AuthContext);
+  const { id } = useParams();
 
   const [customers, setCustomers] = useState([]);
   const [loadCustomer, setLoadCustomer] = useState(true);
@@ -51,10 +54,32 @@ export default function New() {
           console.log("ERRO AO BUSCAR OS CLIENTES", error);
           setLoadCustomer(false);
           setCustomers([{ id: "1", nomeFantsaia: "FREELA" }]);
+
+          if (id) {
+            loadId(lista);
+          }
         });
     }
     loadCustomer();
-  }, []);
+  }, [id]);
+
+  async function loadId(lista) {
+    const docRef = doc(db, "chamados", id);
+    await getDoc(docRef)
+      .then((snapshot) => {
+        setAssunto(snapshot.data().assunto);
+        setStatus(snapshot.data().status);
+        setComplemento(snapshot.data().complemento);
+
+        let index = lista.findIndex(
+          (item) => item.id === snapshot.data().clientId
+        );
+        setCustomerSelected(index);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
   function handleOptionChange(e) {
     setStatus(e.target.value);
@@ -68,7 +93,7 @@ export default function New() {
     setCustomerSelected(e.target.value);
   }
 
-  async function handleRegister(e){
+  async function handleRegister(e) {
     e.preventDefault();
 
     //Registrar um chamado
@@ -81,15 +106,15 @@ export default function New() {
       status: status,
       userId: user.uid,
     })
-    .then(() => {
-      toast.success('CHAMADO REGISTRADO!')
-      setComplemento('')
-      setCustomerSelected(0)
-    })
-    .catch((error) => {
-      toast.error('Ops, erro ao registrar, tente mais tarde!')
-      console.log(error);
-    })
+      .then(() => {
+        toast.success("CHAMADO REGISTRADO!");
+        setComplemento("");
+        setCustomerSelected(0);
+      })
+      .catch((error) => {
+        toast.error("Ops, erro ao registrar, tente mais tarde!");
+        console.log(error);
+      });
   }
 
   return (

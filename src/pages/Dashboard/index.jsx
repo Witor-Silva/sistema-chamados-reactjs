@@ -6,35 +6,45 @@ import Title from "../../components/Title";
 import { FiPlus, FiMessageSquare, FiSearch, FiEdit2 } from "react-icons/fi";
 
 import { Link } from "react-router-dom";
-import { collection, getDocs, orderBy, limit, startAfter, query } from 'firebase/firestore';
-import { db } from '../../services/firebaseConnection'
-import { format } from  'date-fns'
+import {
+  collection,
+  getDocs,
+  orderBy,
+  limit,
+  startAfter,
+  query,
+} from "firebase/firestore";
+import { db } from "../../services/firebaseConnection";
+import { format } from "date-fns";
 
 import "./dashboard.css";
 
-const listRef = collection(db, "chamados")
+const listRef = collection(db, "chamados");
 
 export default function Dashboard() {
   const { logout } = useContext(AuthContext);
 
-  const [chamados, setChamados] = useState([])
+  const [chamados, setChamados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
+  const [lastDocs, setLastDocs] = useState();
+  const [loadingMore, setLoadingMore] = useState();
 
   useEffect(() => {
     async function loadChamados() {
-      const q = query(listRef, orderBy('created', 'desc'), limit(5));
+      const q = query(listRef, orderBy("created", "desc"), limit(5));
 
-      const querySnapshot = await getDocs(q)
+      const querySnapshot = await getDocs(q);
+      setChamados([]);
+
       await updateState(querySnapshot);
 
       setLoading(false);
-
     }
     loadChamados();
 
-    return () => { }
-  }, [])
+    return () => {};
+  }, []);
 
   async function updateState(querySnapshot) {
     const isCollectionEmpty = querySnapshot.size === 0;
@@ -49,33 +59,50 @@ export default function Dashboard() {
           cliente: doc.data().cliente,
           clientId: doc.data().clientId,
           created: doc.data().created,
-          createdFormat: format(doc.data().created.toDate(), 'dd/MM/yyyy'),
+          createdFormat: format(doc.data().created.toDate(), "dd/MM/yyyy"),
           status: doc.data().status,
           complemento: doc.data().complemento,
-        })
+        });
       });
 
-      setChamados(chamados => [...chamados, ...lista])
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; //Pegando o ultimo item
+
+      setChamados((chamados) => [...chamados, ...lista]);
+      setLastDocs(lastDoc);
     } else {
       setIsEmpty(true);
     }
 
+    setLoadingMore(false);
   }
 
-  if(loading){
-    return(
+  async function handleMore() {
+    setLoadingMore(true);
+
+    const q = query(
+      listRef,
+      orderBy("created", "desc"),
+      startAfter(lastDocs),
+      limit(5)
+    );
+    const querySnapshot = await getDocs(q);
+    await updateState(querySnapshot);
+  }
+
+  if (loading) {
+    return (
       <div>
         <Header />
-      <div className="content">
-        <Title name="Tickets">
-          <FiMessageSquare size={25}/>
-        </Title>
-        <div className="container dashboard">
-          <span>Buscando chamados...</span>
-        </div>
+        <div className="content">
+          <Title name="Tickets">
+            <FiMessageSquare size={25} />
+          </Title>
+          <div className="container dashboard">
+            <span>Buscando chamados...</span>
+          </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -87,7 +114,6 @@ export default function Dashboard() {
         </Title>
 
         <>
-
           {chamados.length === 0 ? (
             <div className="container dashboard">
               <span>Nenhum chamado encontrado...</span>
@@ -120,7 +146,19 @@ export default function Dashboard() {
                         <td data-label="Cliente">{item.cliente}</td>
                         <td data-label="Assunto">{item.assunto}</td>
                         <td data-label="Status">
-                          <span className="badge" style={{ backgroundColor: "#999" }}>
+                          <span
+                            className="badge"
+                            style={{
+                              backgroundColor:
+                                item.status === "Aberto"
+                                  ? "#999"
+                                  : item.status === "Progresso"
+                                  ? "#FF9000"
+                                  : item.status === "Atendido"
+                                  ? "#5cb85c"
+                                  : "#999",
+                            }}
+                          >
                             {item.status}
                           </span>
                         </td>
@@ -132,25 +170,28 @@ export default function Dashboard() {
                           >
                             <FiSearch color="#fff" size={17} />
                           </button>
-                          <button
+                          <Link
+                            to={`/new/${item.id}`}
                             className="action"
                             style={{ backgroundColor: "#f6a935" }}
                           >
                             <FiEdit2 color="#fff" size={17} />
-                          </button>
+                          </Link>
                         </td>
                       </tr>
-                    )
+                    );
                   })}
-
-
                 </tbody>
               </table>
+
+              {loadingMore && <h3>Buscando mais chamados...</h3>}
+              {!loadingMore && !isEmpty && (
+                <button className="btn-more" onClick={handleMore}>
+                  Buscar mais
+                </button>
+              )}
             </>
           )}
-
-
-
         </>
       </div>
     </div>
