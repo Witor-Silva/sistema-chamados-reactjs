@@ -1,7 +1,7 @@
 import { useState, createContext, useEffect } from 'react';
 import { auth, db } from '../services/firebaseConnection';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, validatePassword } from 'firebase/auth';
-import { doc, getDoc, namedQuery, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -15,29 +15,24 @@ function AuthProvider({ children }) {
 
     const navigate = useNavigate();
 
-
     useEffect(() => {
         async function loadUser() {
-            const storageUser = localStorage.getItem('@ticketsPRO')
-
+            const storageUser = localStorage.getItem('@ticketsPRO');
             if (storageUser) {
-                setUser(JSON.parse(storageUser))
-                setLoading(false);
+                setUser(JSON.parse(storageUser));
             }
-
-            setLoading(false);
+            setLoading(false); // Garantir que o loading só termine após a verificação
         }
 
         loadUser();
-    }, [])
+    }, []);
 
-    //Logar um usuário
+    // Logar um usuário
     async function signIn(email, password) {
         setLoadingAuth(true);
-
         await signInWithEmailAndPassword(auth, email, password)
             .then(async (value) => {
-                let uid = value.user.uid
+                let uid = value.user.uid;
 
                 const docRef = doc(db, "users", uid);
                 const docSnap = await getDoc(docRef);
@@ -47,7 +42,7 @@ function AuthProvider({ children }) {
                     name: docSnap.data().name,
                     email: value.user.email,
                     avatarUrl: docSnap.data().avatarUrl,
-                }
+                };
                 setUser(data);
                 storageUser(data);
                 setLoadingAuth(false);
@@ -55,18 +50,18 @@ function AuthProvider({ children }) {
                 navigate("/dashboard");
             })
             .catch((error) => {
-                console.log(error)
+                console.log(error);
                 setLoadingAuth(false);
                 toast.error("Ops algo deu errado!");
-            })
+            });
     }
+
     // Cadastrar um novo usuário
     async function signUp(email, password, name) {
         setLoadingAuth(true);
-
         await createUserWithEmailAndPassword(auth, email, password)
             .then(async (value) => {
-                let uid = value.user.uid
+                let uid = value.user.uid;
 
                 await setDoc(doc(db, "users", uid), {
                     name: name,
@@ -77,32 +72,34 @@ function AuthProvider({ children }) {
                             uid: uid,
                             name: name,
                             email: value.user.email,
-                            avatarUrl: null
+                            avatarUrl: null,
                         };
                         setUser(data);
                         storageUser(data);
                         setLoadingAuth(false);
-                        toast.success("Seja bem vindo ao sistema!")
+                        toast.success("Seja bem-vindo ao sistema!");
                         navigate("/dashboard");
-                    })
+                    });
             })
-
             .catch((error) => {
                 console.log(error);
                 setLoadingAuth(false);
-            })
+            });
     }
 
     function storageUser(data) {
-        localStorage.setItem('@ticketsPRO', JSON.stringify(data))
+        localStorage.setItem('@ticketsPRO', JSON.stringify(data));
     }
 
     // Fazer logout da aplicação
-
     async function logout() {
         await signOut(auth);
         localStorage.removeItem('@ticketsPRO');
         setUser(null);
+    }
+
+    if (loading) {
+        return <div>Carregando...</div>; // Exibe um carregamento enquanto o estado do usuário é verificado
     }
 
     return (
@@ -114,14 +111,13 @@ function AuthProvider({ children }) {
                 signUp,
                 logout,
                 loadingAuth,
-                loading,
                 storageUser,
-                setUser
+                setUser,
             }}
         >
             {children}
         </AuthContext.Provider>
     );
-};
+}
 
 export default AuthProvider;
