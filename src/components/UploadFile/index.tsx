@@ -2,8 +2,9 @@ import "./upload.css";
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { db, storage } from "../../services/firebaseConnection"; // Firebase imports
-import { doc, updateDoc } from "firebase/firestore"; // Firestore imports
+import { doc, setDoc, updateDoc } from "firebase/firestore"; // Firestore imports
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage imports
+import { toast } from "react-toastify";
 
 function UploadFile() {
   const [preview, setPreview] = useState<string | ArrayBuffer | null>(null);
@@ -27,36 +28,45 @@ function UploadFile() {
   // Função para manipular o envio e salvar no Firebase Storage
   async function handleOnSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
-    setUploading(true); // Definindo o estado de upload como verdadeiro
+    setUploading(true);
 
-    // Verifica se há um arquivo
-    if (typeof acceptedFiles[0] === 'undefined') return;
+    if (typeof acceptedFiles[0] === 'undefined') {
+      toast.error('Nenhum arquivo foi selecionado.');
+      setUploading(false);
+      return;
+    }
 
-    const file = acceptedFiles[0]; // Pega o primeiro arquivo aceito
+    const file = acceptedFiles[0];
+
+    const allowedTypes = ['image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Tipo de arquivo não permitido. Selecione uma imagem JPEG ou PNG.');
+      setUploading(false);
+      return;
+    }
 
     try {
-      // Cria uma referência no Firebase Storage para o arquivo
       const storageRef = ref(storage, `uploads/${file.name}`);
-
-      // Faz o upload do arquivo
       const uploadResult = await uploadBytes(storageRef, file);
-
-      // Obtém o URL de download do arquivo
       const downloadURL = await getDownloadURL(uploadResult.ref);
 
-      // Atualiza o Firestore com o link da imagem
-      const docRef = doc(db, "your_collection", "your_document_id"); // Atualize o caminho conforme necessário
-      await updateDoc(docRef, {
-        imageUrl: downloadURL, // Nome do campo no Firestore
-      });
+      // Atualize o caminho com a coleção e o ID corretos
+      const docRef = doc(db, "your_collection", "your_document_id");
 
-      console.log('Arquivo enviado e URL salvo no Firestore:', downloadURL);
+      // Use setDoc para criar ou atualizar o documento
+      await setDoc(docRef, {
+        imageUrl: downloadURL,
+      }, { merge: true }); // 'merge: true' mantém os dados existentes no documento
+
+      toast.success('Arquivo salvo com sucesso!');
     } catch (error) {
-      console.error('Erro ao fazer upload ou salvar no Firestore:', error);
+      console.error('Erro ao salvar arquivo:', error);
+      toast.error(`Falha ao salvar arquivo`);
     } finally {
-      setUploading(false); // Upload finalizado
+      setUploading(false);
     }
   }
+
 
   return (
     <form className="form" onSubmit={handleOnSubmit}>
