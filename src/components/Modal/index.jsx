@@ -1,5 +1,6 @@
 import "./modal.css";
 import { FiX } from "react-icons/fi";
+import UploadFile from "../../components/UploadFile/index";
 
 export default function Modal({ conteudo, close }) {
   return (
@@ -53,6 +54,9 @@ export default function Modal({ conteudo, close }) {
               <p>{conteudo.complemento}</p>
             </>
           )}
+          <div>
+            <UploadFile />
+          </div>
         </main>
       </div>
     </div>
